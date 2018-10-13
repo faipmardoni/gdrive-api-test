@@ -9,7 +9,7 @@ const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
 
 const app = express();
-app.use(cors());
+app.use('*', cors());
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
