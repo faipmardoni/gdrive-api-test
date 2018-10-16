@@ -1,42 +1,40 @@
-// const multer = require('multer')
-// const Storage = require('@google-cloud/storage')
-// require('dotenv').config();
+const { google } = require('googleapis');
+const stream = require('stream');
 
-// const BUCKET_CONFIG = {
-//   name: process.env.CLOUD_BUCKET
-// }
-
-module.exports = {
-  upload(req, res, next) {
-    if (!req.file) {
-      req.imageURL = 'https://www.arabamerica.com/wp-content/themes/arabamerica/assets/img/thumbnail-default.jpg';
-      return next();
+module.exports = async (req, res, next) => {
+  const { auth } = req;
+  const fileObject = req.file;
+  if (fileObject) {
+    try {
+      const drive = google.drive({
+        version: 'v3',
+        auth,
+      });
+      const { originalname: filename, buffer, mimetype: mimeType } = fileObject;
+      const body = new stream.PassThrough();
+      body.end(buffer);
+      const { data } = await drive.files.create({
+        requestBody: {
+          name: filename,
+          mimeType,
+          copyRequiresWriterPermission: true,
+        },
+        media: {
+          mimeType,
+          body,
+        },
+      });
+      req.files = data;
+      next();
+    } catch (error) {
+      res.status(500);
+      res.send({
+        status: 500,
+        error,
+      });
     }
-    const storage = Storage({
-      projectId: process.env.GCLOUD_PROJECT,
-      keyFilename: process.env.KEYFILE_PATH,
-    });
-    const bucket = storage.bucket(BUCKET_CONFIG.name);
-    const filename = Date.now() + '.' + req.file.originalname.split('.').pop();
-    const file = bucket.file(filename);
-    const stream = file.createWriteStream({
-      metadata: {
-        contentType: req.file.mimetype,
-      },
-    });
-
-    stream.on('error', (err) => {
-      console.log('error uploading to GCS', err)
-      next(err);
-    });
-
-    stream.on('finish', () => {
-      file.makePublic()
-        .then(() => {
-          req.imageURL = getPublicUrl(filename);
-          next();
-        });
-    });
-    stream.end(req.file.buffer);
-  },
+  } else {
+    req.files = {};
+    next();
+  }
 };
