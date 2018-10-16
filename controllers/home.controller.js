@@ -8,7 +8,7 @@ const readFile = util.promisify(fs.readFile);
 const SCOPES = ['https://www.googleapis.com/auth/drive'];
 const TOKEN_PATH = path.join(__dirname, '../credentials/token.json');
 const credentials = path.join(__dirname, '../credentials/credentials.json');
-const IMG_PATH = path.join(__dirname, './2b047efd.jpg');
+// const IMG_PATH = path.join(__dirname, './2b047efd.jpg');
 
 async function authorize(params) {
   try {
