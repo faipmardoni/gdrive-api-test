@@ -3,7 +3,9 @@ const stream = require('stream');
 
 module.exports = async (req, res, next) => {
   const { auth } = req;
+  // console.log(auth);
   const fileObject = req.file;
+  console.log(fileObject);
   if (fileObject) {
     try {
       const drive = google.drive({
@@ -24,6 +26,7 @@ module.exports = async (req, res, next) => {
           body,
         },
       });
+      console.log(data);
       req.files = data;
       next();
     } catch (error) {
